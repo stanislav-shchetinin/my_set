@@ -20,7 +20,7 @@ private:
         Node* left = nullptr;
         Node* right = nullptr;
         Node* parent = nullptr;
-        Color color;
+        Color color = BLACK;
         value_type data_;
     };
 
@@ -80,46 +80,48 @@ private:
     #define NIL &sentinel
     #define cmp_eq(l, r) (!cmp(l, r) && !cmp(r, l))
     Node sentinel = { NIL, NIL, 0, BLACK, 0};
-    Node *root = NIL;
+    Node *root_ = NIL;
     size_t size_ = 0;
     Comparator cmp = Comparator{};
 
-    void rotateLeft(Node *x) {
+    void rotate_left(Node *x) {
         Node *y = x->right;
         x->right = y->left;
         if (y->left != NIL) y->left->parent = x;
         if (y != NIL) y->parent = x->parent;
         if (x->parent) {
-            if (x == x->parent->left)
+            if (x == x->parent->left) {
                 x->parent->left = y;
-            else
+            } else {
                 x->parent->right = y;
+            }
         } else {
-            root = y;
+            root_ = y;
         }
         y->left = x;
         if (x != NIL) x->parent = y;
     }
 
-    void rotateRight(Node *x) {
+    void rotate_right(Node *x) {
         Node *y = x->left;
         x->left = y->right;
         if (y->right != NIL) y->right->parent = x;
         if (y != NIL) y->parent = x->parent;
         if (x->parent) {
-            if (x == x->parent->right)
+            if (x == x->parent->right) {
                 x->parent->right = y;
-            else
+            } else {
                 x->parent->left = y;
+            }
         } else {
-            root = y;
+            root_ = y;
         }
         y->right = x;
         if (x != NIL) x->parent = y;
     }
 
-    void insertFixup(Node *x) {
-        while (x != root && x->parent->color == RED) {
+    void insert_fixup(Node *x) {
+        while (x != root_ && x->parent->color == RED) {
             if (x->parent == x->parent->parent->left) {
                 Node *y = x->parent->parent->right;
                 if (y->color == RED) {
@@ -130,11 +132,11 @@ private:
                 } else {
                     if (x == x->parent->right) {
                         x = x->parent;
-                        rotateLeft(x);
+                        rotate_left(x);
                     }
                     x->parent->color = BLACK;
                     x->parent->parent->color = RED;
-                    rotateRight(x->parent->parent);
+                    rotate_right(x->parent->parent);
                 }
             } else {
                 Node *y = x->parent->parent->left;
@@ -146,25 +148,25 @@ private:
                 } else {
                     if (x == x->parent->left) {
                         x = x->parent;
-                        rotateRight(x);
+                        rotate_right(x);
                     }
                     x->parent->color = BLACK;
                     x->parent->parent->color = RED;
-                    rotateLeft(x->parent->parent);
+                    rotate_left(x->parent->parent);
                 }
             }
         }
-        root->color = BLACK;
+        root_->color = BLACK;
     }
 
-    void deleteFixup(Node *x) {
-        while (x != root && x->color == BLACK) {
+    void delete_fixup(Node *x) {
+        while (x != root_ && x->color == BLACK) {
             if (x == x->parent->left) {
                 Node *w = x->parent->right;
                 if (w->color == RED) {
                     w->color = BLACK;
                     x->parent->color = RED;
-                    rotateLeft (x->parent);
+                    rotate_left(x->parent);
                     w = x->parent->right;
                 }
                 if (w->left->color == BLACK && w->right->color == BLACK) {
@@ -174,21 +176,21 @@ private:
                     if (w->right->color == BLACK) {
                         w->left->color = BLACK;
                         w->color = RED;
-                        rotateRight (w);
+                        rotate_right(w);
                         w = x->parent->right;
                     }
                     w->color = x->parent->color;
                     x->parent->color = BLACK;
                     w->right->color = BLACK;
-                    rotateLeft (x->parent);
-                    x = root;
+                    rotate_left(x->parent);
+                    x = root_;
                 }
             } else {
                 Node *w = x->parent->left;
                 if (w->color == RED) {
                     w->color = BLACK;
                     x->parent->color = RED;
-                    rotateRight (x->parent);
+                    rotate_right(x->parent);
                     w = x->parent->left;
                 }
                 if (w->right->color == BLACK && w->left->color == BLACK) {
@@ -198,14 +200,14 @@ private:
                     if (w->left->color == BLACK) {
                         w->right->color = BLACK;
                         w->color = RED;
-                        rotateLeft (w);
+                        rotate_left(w);
                         w = x->parent->left;
                     }
                     w->color = x->parent->color;
                     x->parent->color = BLACK;
                     w->left->color = BLACK;
-                    rotateRight (x->parent);
-                    x = root;
+                    rotate_right(x->parent);
+                    x = root_;
                 }
             }
         }
@@ -218,14 +220,14 @@ public:
     set(Comparator cmp) : cmp(cmp) {}
 
     set(const set<T, Comparator>& other) :
-            root(copy(other.root)),
+            root_(copy(other.root_)),
             size_(other.size_),
             cmp(other.cmp) {}
 
     set<T, Comparator>& operator=(const set<T, Comparator>& other) {
         if (this != &other) {
             clear();
-            root = copy(other.root);
+            root_ = copy(other.root_);
             size_ = other.size_;
             cmp = other.cmp;
         }
@@ -236,22 +238,22 @@ public:
         clear();
     }
 
-    bool empty() const {
+    [[nodiscard]] bool empty() const {
         return size_ == 0;
     }
 
-    size_type size() const {
+    [[nodiscard]] size_type size() const {
         return size_;
     }
 
     void clear() {
-        clear(root);
-        root = nullptr;
+        clear(root_);
+        root_ = nullptr;
         size_ = 0;
     }
 
     element begin() const {
-        return begin(root);
+        return begin(root_);
     }
 
     element end() const {
@@ -259,12 +261,12 @@ public:
     }
 
     element find(const key_type& value) const {
-        return element(find(root, value));
+        return element(find(root_, value));
     }
 
     std::pair<element, bool> insert(const value_type& value) {
         Node *current, *parent, *x;
-        current = this->root;
+        current = this->root_;
         parent = 0;
         while (current != NIL) {
             if (cmp_eq(value, current->data_)) return {element(current), false};
@@ -283,21 +285,24 @@ public:
         x->right = NIL;
         x->color = RED;
 
-        if(parent) {
-            if(cmp(value, parent->data_))
+        if (parent) {
+            if(cmp(value, parent->data_)) {
                 parent->left = x;
-            else
+            }
+            else {
                 parent->right = x;
+            }
         } else {
-            root = x;
+            root_ = x;
         }
 
-        insertFixup(x);
+        insert_fixup(x);
+        ++size_;
         return {element(x), true};
     }
 
     void erase(const value_type& value) {
-        Node* z = find(root, value);
+        Node* z = find(root_, value);
         Node *x, *y;
         if (!z || z == NIL) return;
 
@@ -308,25 +313,29 @@ public:
             while (y->left != NIL) y = y->left;
         }
 
-        if (y->left != NIL)
+        if (y->left != NIL) {
             x = y->left;
-        else
+        } else {
             x = y->right;
+        }
 
         x->parent = y->parent;
-        if (y->parent)
-            if (y == y->parent->left)
+        if (y->parent) {
+            if (y == y->parent->left) {
                 y->parent->left = x;
-            else
+            } else {
                 y->parent->right = x;
-        else
-            root = x;
+            }
+        } else {
+            root_ = x;
+        }
 
         if (y != z) z->data_ = y->data_;
 
 
-        if (y->color == BLACK)
-            deleteFixup (x);
+        if (y->color == BLACK) {
+            delete_fixup(x);
+        }
 
         free (y);
     }
@@ -361,13 +370,15 @@ private:
 
     Node* find(Node* root, const key_type& value) const {
         Node *current = root;
-        while(current != NIL)
-            if(cmp_eq(value, current->data_))
+        while (current != NIL) {
+            if (cmp_eq(value, current->data_)) {
                 return (current);
-            else
+            } else {
                 current = cmp(value, current->data_) ?
                           current->left : current->right;
-        return(0);
+            }
+        }
+        return nullptr;
     }
 
     Node* copy(const Node* other) {
