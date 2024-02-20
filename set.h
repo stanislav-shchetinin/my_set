@@ -23,7 +23,7 @@ private:
         Color color = BLACK;
         value_type data_;
     };
-
+    #define NIL &(element::sentinel)
 public:
     class element {
 
@@ -31,10 +31,9 @@ public:
         using value_type = T;
         using const_reference = const value_type&;
         using const_pointer = const value_type*;
-
+        static inline Node sentinel = {0, 0, 0, BLACK, 0};
     private:
         Node* data_ = nullptr;
-
     public:
         element() = default;
         element(Node* data) : data_(data) {}
@@ -53,15 +52,19 @@ public:
             return data_ == other.data_;
         }
 
+        bool operator!=(const element& other) const {
+            return data_ != other.data_;
+        }
+
         element& operator++() {
-            if (!data_->right) {
-                while (data_->parent && data_->parent->right == data_) {
+            if (data_->right == NIL) {
+                while (data_->parent && data_->parent != NIL && data_->parent->right == data_) {
                     data_ = data_->parent;
                 }
                 data_ = data_->parent;
             } else {
                 data_ = data_->right;
-                while (data_->left) {
+                while (data_->left != NIL) {
                     data_ = data_->left;
                 }
             }
@@ -77,9 +80,9 @@ public:
     };
 
 private:
-    #define NIL &sentinel
+
     #define cmp_eq(l, r) (!cmp(l, r) && !cmp(r, l))
-    Node sentinel = { NIL, NIL, 0, BLACK, 0};
+    //Node sentinel = {NIL, NIL, 0, BLACK, 0};
     Node *root_ = NIL;
     size_t size_ = 0;
     Comparator cmp = Comparator{};
@@ -349,10 +352,10 @@ public:
 
 private:
     element begin(Node* root) const {
-        if (!root) {
+        if (!root || root == NIL) {
             return end();
         }
-        while (root->left) {
+        while (root->left != NIL) {
             root = root->left;
         }
         return element(root);
@@ -372,7 +375,7 @@ private:
         Node *current = root;
         while (current != NIL) {
             if (cmp_eq(value, current->data_)) {
-                return (current);
+                return current;
             } else {
                 current = cmp(value, current->data_) ?
                           current->left : current->right;
@@ -391,10 +394,10 @@ private:
                 copy(other->left),
                 copy(other->right)
         };
-        if (node->left) {
+        if (node->left != NIL) {
             node->left->parent = node;
         }
-        if (node->right) {
+        if (node->right != NIL) {
             node->right->parent = node;
         }
         return node;
