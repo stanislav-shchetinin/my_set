@@ -1,4 +1,4 @@
-# ads:set
+# ads::set
 My implementation of std::set on a red and black tree
 
 Testing:
